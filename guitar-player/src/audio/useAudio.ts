@@ -5,7 +5,8 @@ import {
   setTone as engineSetTone,
   playKick as engineKick,
   playSnare as engineSnare,
-  playHihat as engineHihat
+  playHihat as engineHihat,
+  playBass as engineBass
 } from './engine';
 
 export function useAudio() {
@@ -64,12 +65,18 @@ export function useAudio() {
     engineHihat(velocity);
   }, []);
 
+  const playBass = useCallback((freq: number, velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineBass(freq, velocity);
+  }, []);
+
   return {
     tone, setTone,
     enabled, setEnabled,
     hardness, setHardness,
     playStrum, playMute,
-    playKick, playSnare, playHihat
+    playKick, playSnare, playHihat,
+    playBass
   };
 }
 

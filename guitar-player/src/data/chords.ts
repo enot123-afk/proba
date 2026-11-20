@@ -32,5 +32,23 @@ export const CHORDS: Record<string, ChordShape> = {
   'H7':    [null, 2, 1, 2, 0, 2],        // То же, что B7 (русская нотация)
 };
 
+export const ROOT_FREQS: Record<string, number> = {
+  'C': 65.41, 'C#': 69.30, 'Db': 69.30,
+  'D': 73.42, 'D#': 77.78, 'Eb': 77.78,
+  'E': 82.41, 'F': 87.31, 'F#': 92.50, 'Gb': 92.50,
+  'G': 98.00, 'G#': 103.83, 'Ab': 103.83,
+  'A': 110.00, 'A#': 116.54, 'Bb': 116.54,
+  'B': 123.47, 'H': 123.47, // H — си в русской нотации
+};
+
+// Функция находит корень аккорда (например, из "Am7" достанет "A")
+export function getBassFreq(chordName: string): number {
+  const match = chordName.match(/^([A-H][#b]?)/);
+  if (match && ROOT_FREQS[match[1]]) {
+    return ROOT_FREQS[match[1]];
+  }
+  return 82.41; // По умолчанию E (ми)
+}
+
 // Частоты открытых струн: E2 A2 D3 G3 B3 E4
 export const TUNING = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63];

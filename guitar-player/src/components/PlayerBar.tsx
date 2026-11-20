@@ -1,5 +1,5 @@
-import { STRUM_PATTERNS } from '../data/patterns';
 import { DRUM_PATTERNS } from '../data/drums';
+import { BASS_PATTERNS } from '../data/bass';
 
 interface Props {
   isPlaying: boolean;
@@ -10,12 +10,19 @@ interface Props {
   onLoopChange: (v: boolean) => void;
   hardness: number;
   onHardnessChange: (v: number) => void;
+  
   drumPattern: string;
   onDrumPatternChange: (v: string) => void;
+  
   guitarEnabled: boolean;
   onGuitarChange: (v: boolean) => void;
   drumsEnabled: boolean;
   onDrumsChange: (v: boolean) => void;
+  
+  bassPattern: string;
+  onBassPatternChange: (v: string) => void;
+  bassEnabled: boolean;
+  onBassChange: (v: boolean) => void;
 }
 
 function hardnessLabel(h: number): string {
@@ -31,7 +38,10 @@ export function PlayerBar({
   loop, onLoopChange,
   hardness, onHardnessChange,
   drumPattern, onDrumPatternChange, 
-  guitarEnabled, onGuitarChange, drumsEnabled, onDrumsChange
+  guitarEnabled, onGuitarChange, 
+  drumsEnabled, onDrumsChange,
+  bassPattern, onBassPatternChange,
+  bassEnabled, onBassChange
 }: Props) {
   return (
     <div className="play-bar">
@@ -70,6 +80,15 @@ export function PlayerBar({
         </select>
       </div>
 
+      <div className="tempo-control">
+        <span>Бас</span>
+        <select value={bassPattern} onChange={(e) => onBassPatternChange(e.target.value)}>
+          {Object.keys(BASS_PATTERNS).map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+      </div>
+
       <label className="loop-label">
         <input
           type="checkbox"
@@ -79,7 +98,7 @@ export function PlayerBar({
         🔁 Повторять
       </label>
 
-            <div style={{ display: 'flex', gap: '12px', marginLeft: '10px', background: 'var(--panel2)', padding: '6px 12px', borderRadius: '8px' }}>
+      <div style={{ display: 'flex', gap: '12px', marginLeft: '10px', background: 'var(--panel2)', padding: '6px 12px', borderRadius: '8px' }}>
         <label className="loop-label" title="Включить/выключить гитару">
           <input type="checkbox" checked={guitarEnabled} onChange={(e) => onGuitarChange(e.target.checked)} />
           🎸 Гитара
@@ -88,9 +107,12 @@ export function PlayerBar({
           <input type="checkbox" checked={drumsEnabled} onChange={(e) => onDrumsChange(e.target.checked)} />
           🥁 Барабаны
         </label>
+        <label className="loop-label">
+          <input type="checkbox" checked={bassEnabled} onChange={(e) => onBassChange(e.target.checked)} />
+          🎸 Бас
+        </label>
       </div>
-      
-    </div>
 
+    </div>
   );
 }

@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CHORDS } from '../data/chords';
+import { CHORDS, getBassFreq } from '../data/chords';
 import type { useAudio } from '../audio/useAudio';
 import type { StepInfo } from './buildSteps';
-
 type AudioApi = ReturnType<typeof useAudio>;
 
 export function usePlayer(
   steps: StepInfo[], 
   audio: AudioApi,
   guitarEnabled: boolean,
-  drumsEnabled: boolean
+  drumsEnabled: boolean,
+  bassEnabled: boolean
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentGlobalIdx, setCurrentGlobalIdx] = useState(0);
@@ -25,8 +25,10 @@ export function usePlayer(
   const isPlayingRef = useRef(false);
   const timerRef = useRef<number | null>(null);
   const globalIdxRef = useRef(0);
-  
+   const bassEnabledRef = useRef(bassEnabled);
 
+
+  useEffect(() => { bassEnabledRef.current = bassEnabled; }, [bassEnabled]);
   useEffect(() => { stepsRef.current = steps; }, [steps]);
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   useEffect(() => { loopRef.current = loop; }, [loop]);
@@ -70,7 +72,12 @@ export function usePlayer(
       else if (step.drumAction === 'S') audioRef.current.playSnare(1.0);
       else if (step.drumAction === 'H') audioRef.current.playHihat(1.0);
     }
-    
+
+    if (bassEnabledRef.current && step.bassAction === 'P') {
+      const bassFreq = getBassFreq(step.chord);
+      audioRef.current.playBass(bassFreq, 1.0);
+    }
+
     setCurrentGlobalIdx(idx);
 
     globalIdxRef.current = idx + 1;

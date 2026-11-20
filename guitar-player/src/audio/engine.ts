@@ -276,3 +276,28 @@ export function playHihat(volume: number): void {
   noise.connect(hp).connect(gain).connect(chain.hp);
   noise.start(now);
 }
+
+// Бас-гитара
+export function playBass(freq: number, volume: number): void {
+  const c = getContext();
+  const chain = getMasterChain(35);
+  const now = c.currentTime + 0.02;
+
+  const osc = c.createOscillator();
+  osc.type = 'triangle'; // Треугольная волна звучит мягче синуса
+  osc.frequency.setValueAtTime(freq, now);
+
+  const filter = c.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(400, now); 
+  filter.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume * 0.6, now + 0.02); // Быстрая атака
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);   // Затухание
+
+  osc.connect(filter).connect(gain).connect(chain.hp);
+  osc.start(now);
+  osc.stop(now + 0.6);
+}
