@@ -5,7 +5,12 @@ import type { StepInfo } from './buildSteps';
 
 type AudioApi = ReturnType<typeof useAudio>;
 
-export function usePlayer(steps: StepInfo[], audio: AudioApi) {
+export function usePlayer(
+  steps: StepInfo[], 
+  audio: AudioApi,
+  guitarEnabled: boolean,
+  drumsEnabled: boolean
+) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentGlobalIdx, setCurrentGlobalIdx] = useState(0);
   const [bpm, setBpmState] = useState(90);
@@ -15,14 +20,20 @@ export function usePlayer(steps: StepInfo[], audio: AudioApi) {
   const bpmRef = useRef(bpm);
   const loopRef = useRef(loop);
   const audioRef = useRef(audio);
+  const guitarEnabledRef = useRef(guitarEnabled);
+  const drumsEnabledRef = useRef(drumsEnabled);
   const isPlayingRef = useRef(false);
   const timerRef = useRef<number | null>(null);
   const globalIdxRef = useRef(0);
+  
 
   useEffect(() => { stepsRef.current = steps; }, [steps]);
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   useEffect(() => { loopRef.current = loop; }, [loop]);
   useEffect(() => { audioRef.current = audio; }, [audio]);
+
+  useEffect(() => { guitarEnabledRef.current = guitarEnabled; }, [guitarEnabled]);
+  useEffect(() => { drumsEnabledRef.current = drumsEnabled; }, [drumsEnabled]);
 
   const clearTimer = () => {
     if (timerRef.current !== null) {
@@ -47,11 +58,19 @@ export function usePlayer(steps: StepInfo[], audio: AudioApi) {
     const idx = globalIdxRef.current;
     const step = allSteps[idx];
     const frets = CHORDS[step.chord];
+    
+    if (guitarEnabledRef.current) {
+      if (step.action === 'D' && frets) audioRef.current.playStrum(frets, 'down', 0.9);
+      else if (step.action === 'U' && frets) audioRef.current.playStrum(frets, 'up', 0.5);
+      else if (step.action === 'M') audioRef.current.playMute(0.75);
+    }
 
-    if (step.action === 'D' && frets) audioRef.current.playStrum(frets, 'down', 0.9);
-    else if (step.action === 'U' && frets) audioRef.current.playStrum(frets, 'up', 0.5);
-    else if (step.action === 'M') audioRef.current.playMute(0.75);
-
+    if (drumsEnabledRef.current) {
+      if (step.drumAction === 'K') audioRef.current.playKick(1.0);
+      else if (step.drumAction === 'S') audioRef.current.playSnare(1.0);
+      else if (step.drumAction === 'H') audioRef.current.playHihat(1.0);
+    }
+    
     setCurrentGlobalIdx(idx);
 
     globalIdxRef.current = idx + 1;

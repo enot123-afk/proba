@@ -8,24 +8,30 @@ import { ProgressionTable } from './components/ProgressionTable';
 import { useAudio } from './audio/useAudio';
 import { usePlayer } from './player/usePlayer';
 import { buildProgressionSteps} from './player/buildSteps';
+import { DRUM_PATTERNS } from './data/drums';
 
 
 export function App() {
   
   const [pattern, setPattern] = useState('Четвёрка+');
+
+  const [drumPattern, setDrumPattern] = useState('Нет');
   
   const [progression, setProgression] = useState<string[]>(['C', 'Am', 'F', 'G']);
   
   const [viewedChord, setViewedChord] = useState('C');
   const [viewedRowIdx, setViewedRowIdx] = useState(0);
 
+  const [guitarEnabled, setGuitarEnabled] = useState(true);
+  const [drumsEnabled, setDrumsEnabled] = useState(true);
+
   const audio = useAudio();
 
   const steps = useMemo(() => {
-    return buildProgressionSteps(progression, pattern);
-  }, [progression, pattern]);
+    return buildProgressionSteps(progression, pattern, drumPattern);
+  }, [progression, pattern, drumPattern]);
 
-  const player = usePlayer(steps, audio);
+  const player = usePlayer(steps, audio, guitarEnabled, drumsEnabled);
 
   const handlePatternChange = (name: string) => {
     setPattern(name);
@@ -96,6 +102,12 @@ export function App() {
         onLoopChange={player.setLoop}
         hardness={audio.hardness}
         onHardnessChange={audio.setHardness}
+        drumPattern={drumPattern}
+        onDrumPatternChange={setDrumPattern}
+        guitarEnabled={guitarEnabled}
+        onGuitarChange={setGuitarEnabled}
+        drumsEnabled={drumsEnabled}
+        onDrumsChange={setDrumsEnabled}
       />
 
       <PatternView

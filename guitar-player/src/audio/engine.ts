@@ -189,3 +189,90 @@ export function playMute(velocity: number, tone: number): void {
   click.connect(hpClick).connect(g3).connect(chain.hp);
   click.start(now);
 }
+
+/* ============================================================
+   СИНТЕЗ БАРАБАНОВ
+   ============================================================ */
+
+// Бочка (Kick) — низкий панч
+export function playKick(volume: number): void {
+  const c = getContext();
+  const chain = getMasterChain(35); // Барабаны не зависят от тона гитары, ставим средний
+  const now = c.currentTime + 0.02;
+  
+  const osc = c.createOscillator();
+  osc.type = 'sine';
+  // Быстрое падение частоты со 150 Гц до 50 Гц создает "удар"
+  osc.frequency.setValueAtTime(150, now);
+  osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(volume, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+  osc.connect(gain).connect(chain.hp);
+  osc.start(now);
+  osc.stop(now + 0.35);
+}
+
+// Малый барабан (Snare) — шум + тон
+export function playSnare(volume: number): void {
+  const c = getContext();
+  const chain = getMasterChain(35);
+  const now = c.currentTime + 0.02;
+
+  // 1. Тональная часть
+  const osc = c.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(200, now);
+  osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+  const oscGain = c.createGain();
+  oscGain.gain.setValueAtTime(volume * 0.5, now);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+  osc.connect(oscGain).connect(chain.hp);
+  osc.start(now);
+  osc.stop(now + 0.25);
+
+  // 2. Шумовая часть
+  const bufSize = Math.floor(c.sampleRate * 0.2);
+  const buf = c.createBuffer(1, bufSize, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = c.createBufferSource();
+  noise.buffer = buf;
+  const bp = c.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 1500;
+  const noiseGain = c.createGain();
+  noiseGain.gain.setValueAtTime(volume * 0.8, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+  noise.connect(bp).connect(noiseGain).connect(chain.hp);
+  noise.start(now);
+}
+
+// Хэт (Hi-hat) — высокочастотный шум
+export function playHihat(volume: number): void {
+  const c = getContext();
+  const chain = getMasterChain(35);
+  const now = c.currentTime + 0.02;
+
+  const bufSize = Math.floor(c.sampleRate * 0.05);
+  const buf = c.createBuffer(1, bufSize, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = c.createBufferSource();
+  noise.buffer = buf;
+  const hp = c.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 7000; // Оставляем только писк
+
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(volume * 0.4, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+  noise.connect(hp).connect(gain).connect(chain.hp);
+  noise.start(now);
+}

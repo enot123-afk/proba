@@ -3,6 +3,9 @@ import {
   playStrum as engineStrum,
   playMute as engineMute,
   setTone as engineSetTone,
+  playKick as engineKick,
+  playSnare as engineSnare,
+  playHihat as engineHihat
 } from './engine';
 
 export function useAudio() {
@@ -46,10 +49,27 @@ export function useAudio() {
     engineMute(velocity * hardnessFactor(), toneRef.current);
   }, []);
 
+  const playKick = useCallback((velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineKick(velocity);
+  }, []);
+
+  const playSnare = useCallback((velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineSnare(velocity);
+  }, []);
+
+  const playHihat = useCallback((velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineHihat(velocity);
+  }, []);
+
   return {
     tone, setTone,
     enabled, setEnabled,
     hardness, setHardness,
     playStrum, playMute,
+    playKick, playSnare, playHihat
   };
 }
+
