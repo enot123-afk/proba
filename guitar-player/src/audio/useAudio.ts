@@ -1,0 +1,82 @@
+import { useCallback, useRef, useState } from 'react';
+import {
+  playStrum as engineStrum,
+  playMute as engineMute,
+  setTone as engineSetTone,
+  playKick as engineKick,
+  playSnare as engineSnare,
+  playHihat as engineHihat,
+  playBass as engineBass
+} from './engine';
+
+export function useAudio() {
+  const [tone, setToneState] = useState(35);
+  const [enabled, setEnabledState] = useState(true);
+  const [hardness, setHardnessState] = useState(60);
+
+  const toneRef = useRef(tone);
+  const enabledRef = useRef(enabled);
+  const hardnessRef = useRef(hardness);
+
+  // 0 → 0.3×, 100 → 1.0× — тихо, но не в ноль
+  const hardnessFactor = () => 0.3 + 0.7 * (hardnessRef.current / 100);
+
+  const setTone = useCallback((t: number) => {
+    toneRef.current = t;
+    setToneState(t);
+    engineSetTone(t);
+  }, []);
+
+  const setEnabled = useCallback((e: boolean) => {
+    enabledRef.current = e;
+    setEnabledState(e);
+  }, []);
+
+  const setHardness = useCallback((h: number) => {
+    hardnessRef.current = h;
+    setHardnessState(h);
+  }, []);
+
+  const playStrum = useCallback(
+    (frets: (number | null)[], direction: 'down' | 'up', velocity = 1) => {
+      if (!enabledRef.current) return;
+      engineStrum(frets, direction, velocity * hardnessFactor(), toneRef.current);
+    },
+    []
+  );
+
+  const playMute = useCallback((velocity = 0.75) => {
+    if (!enabledRef.current) return;
+    engineMute(velocity * hardnessFactor(), toneRef.current);
+  }, []);
+
+  const playKick = useCallback((velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineKick(velocity);
+  }, []);
+
+  const playSnare = useCallback((velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineSnare(velocity);
+  }, []);
+
+  const playHihat = useCallback((velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineHihat(velocity);
+  }, []);
+
+  const playBass = useCallback((freq: number, velocity = 1) => {
+    if (!enabledRef.current) return;
+    engineBass(freq, velocity);
+  }, []);
+
+  return {
+    tone, setTone,
+    enabled, setEnabled,
+    hardness, setHardness,
+    playStrum, playMute,
+    playKick, playSnare, playHihat,
+    playBass
+  };
+}
+
